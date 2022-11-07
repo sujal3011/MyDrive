@@ -1,6 +1,5 @@
 const express = require("express");
 const path = require('path');
-const crypto = require('crypto');
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 const bodyParser = require("body-parser");
@@ -20,7 +19,9 @@ const mongoURL = process.env.MONGO_URL
 // const mongoURL = "mongodb://localhost:27017/MyDrive";
 
 
-const conn = mongoose.createConnection(mongoURL);
+const conn = mongoose.connect(mongoURL,()=>{
+    console.log("Successfully connected to mongo");
+});
 
 
 app.use(cors())
@@ -31,8 +32,10 @@ app.get('/', (req, res) => {
     res.send("Hello,Welcome to MyDrive");
 })
 
+const auth=require('./routes/auth')
 const files=require('./routes/files');
 
+app.use('/auth',auth);
 app.use('/files',files);
 
 
