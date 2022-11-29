@@ -16,8 +16,6 @@ conn.once('open', () => {
 
 
 
-
-
 // Uploading a new file
 
 router.post('/upload', upload.single('file'), (req, res) => {

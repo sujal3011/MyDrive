@@ -11,6 +11,10 @@ const FolderSchema = new mongoose.Schema({
         minLength: 2,
         trim: true
     },
+    path:{
+        type:String,
+        required:true
+    }
    
 }, { timestamps: true });
 

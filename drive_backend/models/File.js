@@ -5,20 +5,22 @@ const FileSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:'user'
     },
-    folderId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'folder'
-    },
-    original_fileId:{
-        type:String,
-        required: true,
-    },
-    name: {
+    original_name: {
         type: String,
         required: true,
-        minLength: 5,
-        trim: true
     },
+    file_name: {
+        type: String,
+        required: true,
+    },
+    path:{
+        type:String,
+        required:true
+    },
+    uploadDate:{
+        type:Date,
+        default:Date.now
+    }
 
 }, { timestamps: true });
 

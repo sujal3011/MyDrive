@@ -34,9 +34,11 @@ app.get('/', (req, res) => {
 
 const auth=require('./routes/auth')
 const files=require('./routes/files');
+const folders=require('./routes/folders');
 
 app.use('/auth',auth);
 app.use('/files',files);
+app.use('/folders',folders);
 
 
 const port = 80;
