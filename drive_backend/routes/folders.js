@@ -22,14 +22,14 @@ router.post('/addfolder', fetchUser, [
     body('name', 'Enter a valid name').isLength({ min: 2 }),
 ], async (req, res) => {
     try {
-        const { name } = req.body; 
-        const errors = validationResult(req);    
+        const { name } = req.body;
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
         const folder = new Folder({
-            name, user: req.user.id   
+            name, user: req.user.id,path:req.header("path")
         })
         const savedFolder = await folder.save();
         res.json(savedFolder);
@@ -42,29 +42,29 @@ router.post('/addfolder', fetchUser, [
 
 //ROUTE-3----->updating a folder
 
-router.put('/updatefolder/:id', fetchUser, async (req, res) => {   
+router.put('/updatefolder/:id', fetchUser, async (req, res) => {
 
-    const { name } = req.body;  
+    const { name } = req.body;
 
     try {
 
-        const newFolder = {};  
-        if (name) { newFolder.name = name };  
+        const newFolder = {};
+        if (name) { newFolder.name = name };
 
-       
-        let folder = await Folder.findById(req.params.id);  
 
-        if (!folder) { 
+        let folder = await Folder.findById(req.params.id);
+
+        if (!folder) {
             return res.status(404).send("Not found");
         }
 
-        
 
-        if (req.user.id !== folder.user.toString()) {  
+
+        if (req.user.id !== folder.user.toString()) {
             return res.status(401).send("Not allowed");
         }
 
-        
+
 
         folder = await Folder.findByIdAndUpdate(req.params.id, { $set: newFolder }, { new: true });
         res.json(folder);
@@ -73,8 +73,61 @@ router.put('/updatefolder/:id', fetchUser, async (req, res) => {
     }
 })
 
+router.put('/starFolder/:id',fetchUser, async (req, res) => {
+
+    try {
+
+        let folder = await Folder.findById(req.params.id);
+        if (!folder) {
+            return res.status(404).send("Not found");
+        }
+
+        if (req.user.id !== folder.user.toString()) {
+            return res.status(401).send("Not allowed");
+        }
+
+        const updatedFolder = await Folder.findByIdAndUpdate({ _id: req.params.id }, { isStarred: true });
+        res.json(updatedFolder);
+
+    } catch (error) {
+        res.status(500).json(error);
+    }
+
+})
+
+router.put('/removestarFolder/:id',fetchUser, async (req, res) => {
+
+    try {
+
+        let folder = await Folder.findById(req.params.id);
+        if (!folder) {
+            return res.status(404).send("Not found");
+        }
+
+        if (req.user.id !== folder.user.toString()) {
+            return res.status(401).send("Not allowed");
+        }
+        const updatedFolder = await Folder.findByIdAndUpdate({ _id: req.params.id },{ isStarred: false });
+        res.json(updatedFolder);
+
+    } catch (error) {
+        res.status(500).json(error);
+    }
+
+})
 
 
+router.get('/fetchstarredfolders',fetchUser, async (req, res) => {
+    try {
+        const starredFolders = await Folder.find({ isStarred: true });
+        res.json(starredFolders);
 
+    } catch (error) {
+        res.status(500).json(error);
+    }
+})
+
+// TO DO
+//CREATING ENDPOINT FOR DELETING FOLDER
 
 module.exports = router

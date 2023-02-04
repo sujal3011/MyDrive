@@ -17,6 +17,10 @@ const FileSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    isStarred:{
+        type:Boolean,
+        default:false
+    },
     uploadDate:{
         type:Date,
         default:Date.now
