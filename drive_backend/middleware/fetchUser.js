@@ -8,7 +8,8 @@ const fetchUser=(req,res,next)=>{
         return res.status(401).json({error:"Enter a token to authenticate"})  
     }
     try{
-        const data=jwt.verify(token,secret_key);  
+        const data=jwt.verify(token,secret_key);
+        // console.log("data:",data)  
         req.user=data.user;  
         next();   
 

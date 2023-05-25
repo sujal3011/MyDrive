@@ -5,11 +5,11 @@ const Folder = require("../models/Folder");
 const { body, validationResult } = require('express-validator');
 
 
-// ROUTE-1---->getting all the folders of the user
+// ROUTE-1---->getting all the folders of the user of the particular path
 
 router.get('/getfolders', fetchUser, async (req, res) => {
     try {
-        const folders = await Folder.find({ user: req.user.id });
+        const folders = await Folder.find({ user: req.user.id, path:req.header("path") });
         res.json(folders);
     } catch (error) {
         res.status(500).send("Internal server error")
@@ -51,20 +51,15 @@ router.put('/updatefolder/:id', fetchUser, async (req, res) => {
         const newFolder = {};
         if (name) { newFolder.name = name };
 
-
         let folder = await Folder.findById(req.params.id);
 
         if (!folder) {
             return res.status(404).send("Not found");
         }
 
-
-
         if (req.user.id !== folder.user.toString()) {
             return res.status(401).send("Not allowed");
         }
-
-
 
         folder = await Folder.findByIdAndUpdate(req.params.id, { $set: newFolder }, { new: true });
         res.json(folder);
@@ -119,7 +114,7 @@ router.put('/removestarFolder/:id',fetchUser, async (req, res) => {
 
 router.get('/fetchstarredfolders',fetchUser, async (req, res) => {
     try {
-        const starredFolders = await Folder.find({ isStarred: true });
+        const starredFolders = await Folder.find({ user: req.user.id,isStarred: true });
         res.json(starredFolders);
 
     } catch (error) {
@@ -129,5 +124,27 @@ router.get('/fetchstarredfolders',fetchUser, async (req, res) => {
 
 // TO DO
 //CREATING ENDPOINT FOR DELETING FOLDER
+
+router.delete('/deletefolder/:id', fetchUser, async (req, res) => {
+
+    try {
+        let folder = await Folder.findById(req.params.id);
+
+        if (!folder) {
+            return res.status(404).send("Not found");
+        }
+
+        if (req.user.id !== folder.user.toString()) {
+            return res.status(401).send("Not allowed");
+        }
+
+        folder = await Folder.findByIdAndDelete(req.params.id);
+        res.json(folder);
+    } catch (error) {
+        res.status(500).send("Internal server error");
+    }
+})
+
+
 
 module.exports = router

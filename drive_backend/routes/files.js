@@ -28,15 +28,21 @@ conn.once('open', () => {
 // Uploading a new file
 
 router.post('/upload', fetchUser, upload.single('file'), async (req, res) => {
-  // res.json({ file: req.file });
-  // console.log(req.file);
 
-  const newFile = new File({
-    userId: req.user.id, original_name: req.file.originalname, file_name: req.file.filename, path: req.header('path'), uploadDate: req.file.uploadDate
-  })
+  try {
 
-  const savedFile = await newFile.save();
-  res.json(savedFile);
+    const newFile = new File({
+      userId: req.user.id, original_name: req.file.originalname, file_name: req.file.filename, path: req.header('path'), uploadDate: req.file.uploadDate
+    })
+  
+    const savedFile = await newFile.save();
+    res.json(savedFile);
+    
+  } catch (error) {
+    res.status(500).send(error)
+  }
+  
+  
 
 })
 
@@ -53,10 +59,10 @@ router.get('/getallfiles', (req, res) => {
 
 
 // Getting all files of a particular path
-router.get('/getfilesbypath', async (req, res) => {
+router.get('/getfilesbypath', fetchUser, async (req, res) => {
 
   try {
-    const files = await File.find({ path: req.header('path') });
+    const files = await File.find({ path: req.header('path'), userId:req.user.id });
     res.json(files);
   } catch (error) {
     res.status(500).send(error);
@@ -137,18 +143,49 @@ router.delete('/deletefile/:id', (req, res) => {
 
 })
 
-router.put('/renamefile/:id',(req,res)=>{
-  try {
+router.put('/renamefile/:id',fetchUser,async (req,res)=>{
 
-    gfs.rename((req.params.id,"new name"), (error, file) => {
-      if (error) {
-        return res.status(404).json(error);
-      }
-      return res.status(200).json(file);
-    });
+  const {name}=req.body
+
+  // try {
+
+  //   gfs.rename((req.params.id,"new name"), (error, file) => {
+  //     if (error) {
+  //       return res.status(404).json(error);
+  //     }
+  //     return res.status(200).json(file);
+  //   });
+    
+  // } catch (error) {
+  //   res.status(500).json(error);
+  // }
+
+  try {
+    const newFile={}
+    let subArray=newFile.original_name.split(".");
+    let type=subArray[subArray.length-1];
+    if(name) {
+      let new_name=name.concat(".",type);
+      newFile.original_name=new_name;
+
+
+    }
+
+    let file = await File.findById(req.params.id);
+
+    if (!file) {
+      return res.status(404).send("Not found");
+  }
+
+  if (req.user.id !== file.userId.toString()) {
+      return res.status(401).send("Not allowed");
+  }
+
+  file = await File.findByIdAndUpdate(req.params.id, { $set: newFile }, { new: true });
+        res.json(file);
     
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json(error)
   }
 })
 
