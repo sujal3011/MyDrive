@@ -5,6 +5,8 @@ const Grid = require('gridfs-stream');
 const mongoose = require('mongoose');
 const File = require('../models/File');
 const fetchUser = require('../middleware/fetchUser');
+const fs = require('fs');
+const readline = require('readline');
 
 const mongoURL = process.env.MONGO_URL
 
@@ -96,6 +98,46 @@ router.get('/image/:id',async  (req, res) => {
           err: 'Not an image'
         });
       }
+    });
+
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+// GET: Downloading a particular image
+
+router.get('/downloadfile/:id',async  (req, res) => {
+
+  try {
+    
+    let referenceFile = await File.findById(req.params.id);
+  
+    gfs.find({ _id: new mongoose.Types.ObjectId(referenceFile.file_id) }).toArray( (err, files) => {
+      // Check if file
+      if (!files[0] || files.length === 0) {
+        return res.status(404).json({
+          err: 'No file exists'
+        });
+      }
+       
+      const readStream = gfs.openDownloadStream(files[0]._id);
+      console.log(readStream);
+
+      const outputPath = './demo2.txt';
+
+      const writeStream = fs.createWriteStream(outputPath);
+        console.log(writeStream);
+        readStream.pipe(writeStream);
+
+        writeStream.on('finish', () => {
+          console.log('File downloaded successfully.');
+        });
+        
+        writeStream.on('error', (err) => {
+          console.error('Error writing file:', err);
+        });
+      
     });
 
   } catch (error) {
